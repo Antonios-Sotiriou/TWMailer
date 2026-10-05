@@ -51,9 +51,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Keep folders with .gitkeep
-!.gitkeep
-
 # Visual Studio
 .vs/
 .vscode/
@@ -75,10 +72,10 @@ x64/
 *.pdb
 *.ilk
 
+# Keep folders with .gitkeep
+!.gitkeep
+
 # C/C++ temp files
 *.log
 *.tlog
 *.cache
-
-myclient
-myserver
