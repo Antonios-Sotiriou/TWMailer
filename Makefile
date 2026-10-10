@@ -25,14 +25,18 @@ clean:
 	clear
 	rm -f bin/* obj/*
 
-./obj/myclient.o: myclient.c
-	${CC} ${CFLAGS} -o obj/myclient.o myclient.c -c
+./obj/client.o: client.c
+	${CC} ${CFLAGS} -o obj/client.o client.c -c
 
-./obj/myserver.o: myserver.c
-	${CC} ${CFLAGS} -o obj/myserver.o myserver.c -c 
+./obj/server.o: server.c
+	${CC} ${CFLAGS} -o obj/server.o server.c -c
 
-./bin/server: ./obj/myserver.o
-	${CC} ${CFLAGS} -o bin/server obj/myserver.o
+./obj/general_funcs.o: source/general_funcs.c
+	${CC} ${CFLAGS} -o obj/general_funcs.o source/general_funcs.c -c 
 
-./bin/client: ./obj/myclient.o
-	${CC} ${CFLAGS} -o bin/client obj/myclient.o
+./bin/server: ./obj/server.o ./obj/general_funcs.o
+	${CC} ${CFLAGS} -o bin/server obj/server.o ./obj/general_funcs.o
+
+./bin/client: ./obj/client.o
+	${CC} ${CFLAGS} -o bin/client obj/client.o
+
