@@ -33,24 +33,24 @@ int main(int argc, char **argv) {
 
     // SIGNAL HANDLER
     if (signal(SIGINT, signalHandler) == SIG_ERR) {
-        fprintf(stderr, "signal can not be registered");
+        fprintf(stderr, "signal can not be registered\n");
         return EXIT_FAILURE;
     }
 
     // CREATE A SOCKET
     if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        fprintf(stderr, "Socket error"); // errno set by socket()
+        fprintf(stderr, "Socket error\n"); // errno set by socket()
         return EXIT_FAILURE;
     }
 
     // SET SOCKET OPTIONS
     if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEADDR, &reuseValue, sizeof(reuseValue)) == -1) {
-        fprintf(stderr, "set socket options - reuseAddr");
+        fprintf(stderr, "set socket options - reuseAddr\n");
         return EXIT_FAILURE;
     }
 
     if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEPORT, &reuseValue, sizeof(reuseValue)) == -1) {
-        fprintf(stderr, "set socket options - reusePort");
+        fprintf(stderr, "set socket options - reusePort\n");
         return EXIT_FAILURE;
     }
 
@@ -63,14 +63,14 @@ int main(int argc, char **argv) {
 
     // ASSIGN AN ADDRESS WITH PORT TO SOCKET
     if (bind(create_socket, (struct sockaddr *)&address, sizeof(address)) == -1) {
-        fprintf(stderr, "bind error");
+        fprintf(stderr, "bind error\n");
         free(mail_spool_dir);
         return EXIT_FAILURE;
     }
 
     // ALLOW CONNECTION ESTABLISHING
     if (listen(create_socket, 5) == -1) {
-        fprintf(stderr, "listen error");
+        fprintf(stderr, "listen error\n");
         free(mail_spool_dir);
         return EXIT_FAILURE;
     }
@@ -82,9 +82,9 @@ int main(int argc, char **argv) {
         addrlen = sizeof(struct sockaddr_in);
         if ((new_socket = accept(create_socket, (struct sockaddr *)&cliaddress, &addrlen)) == -1) {
             if (abortRequested) {
-            fprintf(stderr, "accept error after aborted");
+            fprintf(stderr, "accept error after aborted\n");
             } else {
-            fprintf(stderr, "accept error");
+            fprintf(stderr, "accept error\n");
             }
             break;
         }
@@ -98,10 +98,10 @@ int main(int argc, char **argv) {
     // frees the descriptor
     if (create_socket != -1) {
         if (shutdown(create_socket, SHUT_RDWR) == -1) {
-            fprintf(stderr, "shutdown create_socket");
+            fprintf(stderr, "shutdown create_socket\n");
         }
         if (close(create_socket) == -1) {
-            fprintf(stderr, "close create_socket");
+            fprintf(stderr, "close create_socket\n");
         }
         create_socket = -1;
     }
@@ -114,26 +114,24 @@ void *clientCommunication(void *data) {
     char buffer[BUF];
     int size;
     int *current_socket = (int*)data;
-    char received_data[4096] = { 0 };    // Here we gather all informations from which a command consists.
-    size_t total_size = 0;
+    // char received_data[4096] = { 0 };    // Here we gather all informations from which a command consists.
+    // size_t total_size = 0;
 
     // SEND welcome message
     strcpy(buffer, "Welcome to myserver!\r\nPlease enter your commands...\r\n");
     if (send(*current_socket, buffer, strlen(buffer), 0) == -1) {
-        fprintf(stderr, "send failed");
+        fprintf(stderr, "send failed\n");
         return NULL;
     }
-
-    TWMail twmail = { 0 };
 
     do {
         // RECEIVE
         size = recv(*current_socket, buffer, BUF - 1, 0);
         if (size == -1) {
             if (abortRequested) {
-                fprintf(stderr, "recv error after aborted");
+                fprintf(stderr, "recv error after aborted\n");
             } else {
-                fprintf(stderr, "recv error");
+                fprintf(stderr, "recv error\n");
             }
             break;
         } else if (size == 0) {
@@ -141,32 +139,32 @@ void *clientCommunication(void *data) {
             break;
         }
 
-        total_size += size;
-        strcat(received_data, buffer);
-        strcat(received_data, "\n");
+        // total_size += size;
+        // strcat(received_data, buffer);
+        // strcat(received_data, "\n");
 
-        if (strcmp(buffer, ".") == 0) {
+        // if (strcmp(buffer, ".") == 0) {
 
-            received_data[total_size] = '\0';
+            // received_data[total_size] = '\0';
+            buffer[size] = '\0';
+            std::string received_data(buffer);
 
-            if (parseReceivedData(&twmail, received_data) == -1) {    // We parse the command the user entered and initializing twmail struct.
+            if (dispatchCommand(received_data) == -1) {    // We parse the command the user entered and initializing twmail struct.
 
                 if (send(*current_socket, "ERR", 4, 0) == -1) {
-                    fprintf(stderr, "send answer failed");
+                    fprintf(stderr, "send answer failed\n");
                     return NULL;
                 }
 
-                fprintf(stderr, "Received data parsing failed");
-                return NULL;
+                fprintf(stderr, "Received data parsing failed\n");
+                break;
             }
 
-            dispatchCommand(&twmail);    // Here we will handle the action that the user requested.
-
-            memset(received_data, '\0', total_size);    // reset received_data for the next command.
-        }
-
+            memset(&buffer, '\0', BUF);    // reset received_data for the next command.
+        // }
+        
         if (send(*current_socket, "OK", 3, 0) == -1) {
-            fprintf(stderr, "send answer failed");
+            fprintf(stderr, "send answer failed\n");
             return NULL;
         }
     } while (strcmp(buffer, "quit") != 0 && !abortRequested);
@@ -174,10 +172,10 @@ void *clientCommunication(void *data) {
     // closes/frees the descriptor if not already
     if (*current_socket != -1) {
         if (shutdown(*current_socket, SHUT_RDWR) == -1) {
-            fprintf(stderr, "shutdown new_socket");
+            fprintf(stderr, "shutdown new_socket\n");
         }
         if (close(*current_socket) == -1) {
-            fprintf(stderr, "close new_socket");
+            fprintf(stderr, "close new_socket\n");
         }
         *current_socket = -1;
     }
@@ -186,26 +184,26 @@ void *clientCommunication(void *data) {
 }
 void signalHandler(int sig) {
     if (sig == SIGINT) {
-        printf("abort Requested... "); // ignore error
+        printf("abort Requested... \n"); // ignore error
         abortRequested = 1;
 
         // With shutdown() one can initiate normal TCP close sequence ignoring the reference count.
         if (new_socket != -1) {
             if (shutdown(new_socket, SHUT_RDWR) == -1) {
-            perror("shutdown new_socket");
+            perror("shutdown new_socket\n");
             }
             if (close(new_socket) == -1) {
-            perror("close new_socket");
+            perror("close new_socket\n");
             }
             new_socket = -1;
         }
 
         if (create_socket != -1) {
             if (shutdown(create_socket, SHUT_RDWR) == -1) {
-            perror("shutdown create_socket");
+            perror("shutdown create_socket\n");
             }
             if (close(create_socket) == -1) {
-            perror("close create_socket");
+            perror("close create_socket\n");
             }
             create_socket = -1;
         }

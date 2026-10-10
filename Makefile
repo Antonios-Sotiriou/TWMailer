@@ -2,7 +2,7 @@
 # Makefile
 #############################################################################################
 
-CC=gcc
+CC=g++
 
 #############################################################################################
 # -g: produces debugging information (for gdb)
@@ -25,14 +25,14 @@ clean:
 	clear
 	rm -f bin/* obj/*
 
-./obj/client.o: client.c
-	${CC} ${CFLAGS} -o obj/client.o client.c -c
+./obj/client.o: client.cpp
+	${CC} ${CFLAGS} -o obj/client.o client.cpp -c
 
-./obj/server.o: server.c
-	${CC} ${CFLAGS} -o obj/server.o server.c -c
+./obj/server.o: server.cpp
+	${CC} ${CFLAGS} -o obj/server.o server.cpp -c
 
-./obj/general_funcs.o: source/general_funcs.c
-	${CC} ${CFLAGS} -o obj/general_funcs.o source/general_funcs.c -c 
+./obj/general_funcs.o: source/general_funcs.cpp
+	${CC} ${CFLAGS} -o obj/general_funcs.o source/general_funcs.cpp -c 
 
 ./bin/server: ./obj/server.o ./obj/general_funcs.o
 	${CC} ${CFLAGS} -o bin/server obj/server.o ./obj/general_funcs.o

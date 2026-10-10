@@ -1,9 +1,8 @@
 #ifndef GENERAL_FUNCS_H
 #define GENERAL_FUNCS_H 1
 
-#include "structs.h"
+#include <string>
 
-int parseReceivedData(TWMail *twmail, char data[]);
-void dispatchCommand(TWMail *twmail);
+int dispatchCommand(std::string data);
 
 #endif // !GENERAL_FUNCS_H
