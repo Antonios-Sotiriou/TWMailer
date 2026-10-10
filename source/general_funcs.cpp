@@ -35,6 +35,3 @@ int dispatchUserRequest(std::string data) {
 
     return EXIT_SUCCESS;
 }
-// int send(char *sender, char *receiver, char *subject, char *message) {
-
-// }
