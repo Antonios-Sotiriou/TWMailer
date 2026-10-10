@@ -1,57 +1,37 @@
 #include "../headers/general_funcs.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <iostream>
 #include <stdlib.h>
 
 /* Parses the received data seperating the individual components. Initializes a struct to hold those data. */
-int dispatchCommand(std::string data) {
+int dispatchUserRequest(std::string data) {
 
-    std::string delimiter = "\\n";
+    std::string delimiter = "\\n";    // We need that here because the new line characters are interpreted as individual characters.
     std::string method = data.substr(0, data.find(delimiter));
     data.erase(0, data.find(delimiter) + delimiter.length());
 
-    delimiter = "\n";
+    delimiter = "\n";    // Thats the normal new line charakter, appended to received data after enter is pressed in the console.
     std::string request_body = data.substr(0, data.find(delimiter));
     data.erase(0, data.find(delimiter) + delimiter.length());
-    // char *method = { 0 };
-    // char *request_body = { 0 };
-    
-    // char *token = strtok(data, "\\");
-    // token = strtok(NULL, "n");
-    // if (token == NULL || strcmp(token, " ") == 0) {
-    //     return -1;
-    // }
-    // method = strdup(token);
 
-    // token = strtok(NULL, "\0");
-    // if (token == NULL || strcmp(token, " ") == 0) {
-    //     return -1;
-    // }
-    // request_body = strdup(token);
+    if (method == "SEND") {
+        fprintf(stdout, "User sended a message! Run save message pipeline\n");
+        // Implement here SEND logik
+    } else if (method == "LIST") {
+        fprintf(stdout, "User requested message list!\n");
+        // Implement here LIST logik
+    } else if (method == "READ") {
+        fprintf(stdout, "User requested message read!\n");
+        // Implement here READ logik
+    } else if (method == "DEL") {
+        fprintf(stdout, "User requested message delete!\n");
+        // Implement here DEL logik
+    } else {
+        fprintf(stderr, "Unkown command: %s!\n", method.c_str());
+        return -1;
+    }
 
-    // printf("method: %s    request body:\n %s\n", method, request_body);
-
-    // if (strcmp(method, "SEND") == 0) {
-    //     fprintf(stdout, "User sended a message! Run save message pipeline\n");
-    //     // Implement here SEND logik
-    // } else if (strcmp(method, "LIST") == 0) {
-    //     fprintf(stdout, "User requested message list!\n");
-    //     // Implement here LIST logik
-    // } else if (strcmp(method, "READ") == 0) {
-    //     fprintf(stdout, "User requested message read!\n");
-    //     // Implement here READ logik
-    // } else if (strcmp(method, "DEL") == 0) {
-    //     fprintf(stdout, "User requested message delete!\n");
-    //     // Implement here DEL logik
-    // } else {
-    //     fprintf(stderr, "Unkown command!\n");
-    //     return -1;
-    // }
-
-    printf("method: %s    request body:\n %s\n", method.c_str(), request_body.c_str());
-    // free(method);
-    // free(request_body);
+    printf("method: %s\nrequest body: %s\n\n", method.c_str(), request_body.c_str());
 
     return EXIT_SUCCESS;
 }

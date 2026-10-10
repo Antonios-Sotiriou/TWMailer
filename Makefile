@@ -25,11 +25,11 @@ clean:
 	clear
 	rm -f bin/* obj/*
 
-./obj/client.o: client.cpp
-	${CC} ${CFLAGS} -o obj/client.o client.cpp -c
+./obj/client.o: source/client.cpp
+	${CC} ${CFLAGS} -o obj/client.o source/client.cpp -c
 
-./obj/server.o: server.cpp
-	${CC} ${CFLAGS} -o obj/server.o server.cpp -c
+./obj/server.o: source/server.cpp
+	${CC} ${CFLAGS} -o obj/server.o source/server.cpp -c
 
 ./obj/general_funcs.o: source/general_funcs.cpp
 	${CC} ${CFLAGS} -o obj/general_funcs.o source/general_funcs.cpp -c 

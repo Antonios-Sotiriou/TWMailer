@@ -10,11 +10,9 @@
 #define BUF         1024
 
 int main(int argc, char **argv) {
-    int create_socket;
     char buffer[BUF];
     struct sockaddr_in address;
-    int size;
-    int isQuit;
+    int create_socket = 0, size = 0;
 
     if (argc < 3 || argc > 3) {
         fprintf(stdout, "Wrong arguments are provided. Please use following syntax: \n");
@@ -55,14 +53,16 @@ int main(int argc, char **argv) {
         printf("%s", buffer); // ignore error
     }
 
-    do {
+    while (1) {
         printf(">> ");
         if (fgets(buffer, BUF - 1, stdin) != NULL) {
             int size = strlen(buffer);
 
-            isQuit = strcmp(buffer, "quit") == 0;
+            if (strncmp(buffer, "quit", 4) == 0) {
+                break;
+            }
 
-            if (strcmp(buffer, "clear") == 0) {
+            if (strncmp(buffer, "clear", 5) == 0) {
                 system("clear");
                 continue;
             }
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
                 printf("<< %s\n", buffer);
             }
         }
-    } while (!isQuit);
+    }
 
     // CLOSES THE DESCRIPTOR
     if (create_socket != -1) {

@@ -3,6 +3,6 @@
 
 #include <string>
 
-int dispatchCommand(std::string data);
+int dispatchUserRequest(std::string data);
 
 #endif // !GENERAL_FUNCS_H

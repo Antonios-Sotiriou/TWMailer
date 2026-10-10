@@ -8,7 +8,7 @@
 #include <string.h>
 #include <signal.h>
 
-#include "headers/general_funcs.h"
+#include "../headers/general_funcs.h"
 
 #define BUF 1024
 
@@ -82,9 +82,9 @@ int main(int argc, char **argv) {
         addrlen = sizeof(struct sockaddr_in);
         if ((new_socket = accept(create_socket, (struct sockaddr *)&cliaddress, &addrlen)) == -1) {
             if (abortRequested) {
-            fprintf(stderr, "accept error after aborted\n");
+                fprintf(stderr, "accept error after aborted\n");
             } else {
-            fprintf(stderr, "accept error\n");
+                fprintf(stderr, "accept error\n");
             }
             break;
         }
@@ -114,8 +114,6 @@ void *clientCommunication(void *data) {
     char buffer[BUF];
     int size;
     int *current_socket = (int*)data;
-    // char received_data[4096] = { 0 };    // Here we gather all informations from which a command consists.
-    // size_t total_size = 0;
 
     // SEND welcome message
     strcpy(buffer, "Welcome to myserver!\r\nPlease enter your commands...\r\n");
@@ -124,7 +122,7 @@ void *clientCommunication(void *data) {
         return NULL;
     }
 
-    do {
+    while (1) {
         // RECEIVE
         size = recv(*current_socket, buffer, BUF - 1, 0);
         if (size == -1) {
@@ -138,36 +136,31 @@ void *clientCommunication(void *data) {
             fprintf(stdout, "Client closed remote socket\n");
             break;
         }
+        buffer[size] = '\0';
 
-        // total_size += size;
-        // strcat(received_data, buffer);
-        // strcat(received_data, "\n");
+        if ((strcmp(buffer, "quit") == 0) || abortRequested) {
+            break;
+        }
 
-        // if (strcmp(buffer, ".") == 0) {
+        std::string received_data(buffer);
 
-            // received_data[total_size] = '\0';
-            buffer[size] = '\0';
-            std::string received_data(buffer);
+        if (dispatchUserRequest(received_data) == -1) {    // We parse the command the user entered and initializing twmail struct.
 
-            if (dispatchCommand(received_data) == -1) {    // We parse the command the user entered and initializing twmail struct.
-
-                if (send(*current_socket, "ERR", 4, 0) == -1) {
-                    fprintf(stderr, "send answer failed\n");
-                    return NULL;
-                }
-
-                fprintf(stderr, "Received data parsing failed\n");
-                break;
+            if (send(*current_socket, "ERR", 4, 0) == -1) {
+                fprintf(stderr, "send answer failed\n");
+                return NULL;
             }
 
-            memset(&buffer, '\0', BUF);    // reset received_data for the next command.
-        // }
+            continue;
+        }
+
+        memset(&buffer, '\0', BUF);    // reset received_data for the next command.
         
         if (send(*current_socket, "OK", 3, 0) == -1) {
             fprintf(stderr, "send answer failed\n");
             return NULL;
         }
-    } while (strcmp(buffer, "quit") != 0 && !abortRequested);
+    }
 
     // closes/frees the descriptor if not already
     if (*current_socket != -1) {
