@@ -18,6 +18,9 @@ CC=g++
 #############################################################################################
 CFLAGS=-g -Wall -Wextra -Werror -O -pthread
 
+CWD := $(shell pwd)
+CFLAGS += -DCURRENT_DIR=\"$(CWD)\"
+
 rebuild: clean all
 all: ./bin/server ./bin/client
 

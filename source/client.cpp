@@ -7,6 +7,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef CURRENT_DIR
+    #define CURRENT_DIR    ""
+#endif
+
+#include <filesystem>
+
 #define BUF         1024
 
 int main(int argc, char **argv) {

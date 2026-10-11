@@ -4,5 +4,6 @@
 #include <string>
 
 int dispatchUserRequest(std::string data);
+int send(std::string data);
 
 #endif // !GENERAL_FUNCS_H
