@@ -7,8 +7,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <string>
 
 #include "../headers/general_funcs.h"
+#include <filesystem>
+
+#ifndef CURRENT_DIR
+    #define CURRENT_DIR    ""
+#endif
 
 #define BUF 1024
 
@@ -16,7 +22,7 @@ int abortRequested = 0;
 int create_socket = -1;
 int new_socket = -1;
 
-void *clientCommunication(void *data);
+void *clientCommunication(void *data, std::string mail_spool_directory);
 void signalHandler(int sig);
 
 int main(int argc, char **argv) {
@@ -29,6 +35,15 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Wrong arguments are provided. Please use following syntax: \n");
         fprintf(stderr, "./twmailer-server <port> <mail-spool-directoryname>\n");
         return EXIT_FAILURE;
+    }
+
+    // Create the mail Spool directory if its not exist.
+    namespace fs = std::filesystem;
+    std::string new_dir = std::string(CURRENT_DIR) + "/" + argv[2];
+    if (!fs::exists(new_dir)) {    // Check if user folder exists and if not create it.
+        if (!fs::create_directory(new_dir)) {
+            fprintf(stdout, "Create user directory failed!\n");
+        }
     }
 
     // SIGNAL HANDLER
@@ -91,7 +106,7 @@ int main(int argc, char **argv) {
 
         // START CLIENT. Probably here we should implement fork or threads.
         fprintf(stdout, "Client connected from %s:%d...\n", inet_ntoa(cliaddress.sin_addr), ntohs(cliaddress.sin_port));
-        clientCommunication(&new_socket); // returnValue can be ignored for now.
+        clientCommunication(&new_socket, std::string(argv[2])); // returnValue can be ignored for now.
         new_socket = -1;
     }
 
@@ -110,7 +125,7 @@ int main(int argc, char **argv) {
 
     return EXIT_SUCCESS;
 }
-void *clientCommunication(void *data) {
+void *clientCommunication(void *data, std::string mail_spool_directory) {
     char buffer[BUF];
     int size;
     int *current_socket = (int*)data;
@@ -144,7 +159,7 @@ void *clientCommunication(void *data) {
 
         std::string received_data(buffer);
 
-        if (dispatchUserRequest(received_data) == -1) {    // We parse the command the user entered and initializing twmail struct.
+        if (dispatchUserRequest(received_data, mail_spool_directory) == -1) {    // We parse the command the user entered and initializing twmail struct.
 
             if (send(*current_socket, "ERR", 4, 0) == -1) {
                 fprintf(stderr, "send answer failed\n");

@@ -10,7 +10,7 @@
 #endif
 
 /* Parses the received data seperating the individual components. Initializes a struct to hold those data. */
-int dispatchUserRequest(std::string data) {
+int dispatchUserRequest(std::string data, std::string mail_spool_directory) {
 
     std::string delimiter = "\\n";    // We need that here because the new line characters are interpreted as individual characters.
     std::string method = data.substr(0, data.find(delimiter));
@@ -22,7 +22,7 @@ int dispatchUserRequest(std::string data) {
     if (method == "SEND") {
         fprintf(stdout, "User sended a message! Run save message pipeline\n");
         // Implement here SEND logik
-        send(data);
+        send(data, mail_spool_directory);
     } else if (method == "LIST") {
         fprintf(stdout, "User requested message list!\n");
         // Implement here LIST logik
@@ -39,7 +39,7 @@ int dispatchUserRequest(std::string data) {
 
     return EXIT_SUCCESS;
 }
-int send(std::string data) {
+int send(std::string data, std::string mail_spool_directory) {
     std::string delimiter = "\\n";    // We need that here because the new line characters are interpreted as individual characters.
     std::string sender = data.substr(0, data.find(delimiter));
     data.erase(0, data.find(delimiter) + delimiter.length());
@@ -58,7 +58,7 @@ int send(std::string data) {
 
     // At this point we receive a correct command from the user, so create the receiver folder if it not exists.
     namespace fs = std::filesystem;
-    std::string new_dir = std::string(CURRENT_DIR) + "/mail_spool_dir/" + std::string(receiver);
+    std::string new_dir = std::string(CURRENT_DIR) + "/" + mail_spool_directory + "/" + std::string(receiver);
     if (!fs::exists(new_dir)) {    // Check if user folder exists and if not create it.
         if (!fs::create_directory(new_dir)) {
             fprintf(stdout, "Create user directory failed!\n");

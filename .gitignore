@@ -79,3 +79,6 @@ x64/
 *.log
 *.tlog
 *.cache
+
+# Ignore testing directories and data
+mail_spool_*
