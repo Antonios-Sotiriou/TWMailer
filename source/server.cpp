@@ -198,20 +198,20 @@ void signalHandler(int sig) {
         // With shutdown() one can initiate normal TCP close sequence ignoring the reference count.
         if (new_socket != -1) {
             if (shutdown(new_socket, SHUT_RDWR) == -1) {
-            perror("shutdown new_socket\n");
+                perror("shutdown new_socket\n");
             }
             if (close(new_socket) == -1) {
-            perror("close new_socket\n");
+                perror("close new_socket\n");
             }
             new_socket = -1;
         }
 
         if (create_socket != -1) {
             if (shutdown(create_socket, SHUT_RDWR) == -1) {
-            perror("shutdown create_socket\n");
+                perror("shutdown create_socket\n");
             }
             if (close(create_socket) == -1) {
-            perror("close create_socket\n");
+                perror("close create_socket\n");
             }
             create_socket = -1;
         }

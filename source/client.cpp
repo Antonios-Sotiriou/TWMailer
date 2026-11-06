@@ -6,14 +6,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <string>
 
 #ifndef CURRENT_DIR
-    #define CURRENT_DIR    ""
+#define CURRENT_DIR ""
 #endif
 
 #include <filesystem>
 
-#define BUF         1024
+#define BUF 1024
+
+static void send(std::string &outgoing);
 
 int main(int argc, char **argv) {
     char buffer[BUF];
@@ -37,7 +40,7 @@ int main(int argc, char **argv) {
     address.sin_family = AF_INET;         // IPv4
 
     inet_aton(argv[1], &address.sin_addr);
-    address.sin_port = htons(atoi(argv[2]));    // Assign the port received from user console arguments to the socket.
+    address.sin_port = htons(atoi(argv[2])); // Assign the port received from user console arguments to the socket.
 
     // CREATE A CONNECTION
     if (connect(create_socket, (struct sockaddr *)&address, sizeof(address)) == -1) {
@@ -62,19 +65,28 @@ int main(int argc, char **argv) {
     while (1) {
         printf(">> ");
         if (fgets(buffer, BUF - 1, stdin) != NULL) {
-            int size = strlen(buffer);
 
             if (strncmp(buffer, "quit", 4) == 0) {
                 break;
             }
 
             if (strncmp(buffer, "clear", 5) == 0) {
-                system("clear");
+                int clear_result = system("clear"); // Execute the clear command and store its return value.
+                (void)clear_result;                 // Explicitly mark the return value as intentionally unused.
                 continue;
             }
 
             // SEND DATA
-            if ((send(create_socket, buffer, size + 1, 0)) == -1)  {
+            std::string outgoing; // Stores the complete request before sending it.
+
+            if (strcmp(buffer, "SEND\n") == 0) {
+                send(outgoing);
+            } else {
+                outgoing = buffer; // Use the original input for other commands.
+            }
+
+            // Send the complete request to the server.
+            if (send(create_socket, outgoing.c_str(), outgoing.length(), 0) == -1) {
                 perror("send error");
                 break;
             }
@@ -98,7 +110,7 @@ int main(int argc, char **argv) {
     if (create_socket != -1) {
         if (shutdown(create_socket, SHUT_RDWR) == -1) {
             // invalid in case the server is gone already
-            perror("shutdown create_socket"); 
+            perror("shutdown create_socket");
         }
         if (close(create_socket) == -1) {
             perror("close create_socket");
@@ -107,4 +119,36 @@ int main(int argc, char **argv) {
     }
 
     return EXIT_SUCCESS;
+}
+static void send(std::string &outgoing) {
+    outgoing = "SEND\n"; // Add the SEND command to the request.
+
+    char line[BUF]; // Temporary buffer for reading user input.
+
+    printf("Sender: ");
+    if (fgets(line, BUF, stdin) == NULL)
+        return;
+    outgoing += line; // Add the sender to the request.
+
+    printf("Receiver: ");
+    if (fgets(line, BUF, stdin) == NULL)
+        return;
+    outgoing += line; // Add the receiver to the request.
+
+    printf("Subject: ");
+    if (fgets(line, BUF, stdin) == NULL)
+        return;
+    outgoing += line; // Add the subject to the request.
+
+    printf("Message (finish with a dot on a separate line):\n");
+
+    // Read message lines until the user enters a dot.
+    while (fgets(line, BUF, stdin) != NULL) {
+        outgoing += line; // Add the current message line.
+
+        if (strcmp(line, ".\n") == 0 || strcmp(line, ".") == 0) {
+            break; // Stop reading when the end marker is entered.
+        }
+    }
+    printf("Email: %s\n", outgoing.c_str());
 }

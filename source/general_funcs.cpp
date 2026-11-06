@@ -9,10 +9,15 @@
     #define CURRENT_DIR    ""
 #endif
 
+static int send(std::string data, std::string mail_spool_directory);
+
 /* Parses the received data seperating the individual components. Initializes a struct to hold those data. */
 int dispatchUserRequest(std::string data, std::string mail_spool_directory) {
-
-    std::string delimiter = "\\n";    // We need that here because the new line characters are interpreted as individual characters.
+ 
+    // The client sends actual newline characters when the user presses Enter.
+    // We use "\n" as a delimiter to separate the individual lines of the received data.
+    // Using "\\n" would search for the two characters '\' and 'n' instead of an actual newline
+    std::string delimiter = "\n";   
     std::string method = data.substr(0, data.find(delimiter));
     data.erase(0, data.find(delimiter) + delimiter.length());
 
@@ -22,7 +27,7 @@ int dispatchUserRequest(std::string data, std::string mail_spool_directory) {
     if (method == "SEND") {
         fprintf(stdout, "User sended a message! Run save message pipeline\n");
         // Implement here SEND logik
-        send(data, mail_spool_directory);
+        return send(data, mail_spool_directory); // Return the result of the SEND operation.
     } else if (method == "LIST") {
         fprintf(stdout, "User requested message list!\n");
         // Implement here LIST logik
@@ -39,8 +44,8 @@ int dispatchUserRequest(std::string data, std::string mail_spool_directory) {
 
     return EXIT_SUCCESS;
 }
-int send(std::string data, std::string mail_spool_directory) {
-    std::string delimiter = "\\n";    // We need that here because the new line characters are interpreted as individual characters.
+static int send(std::string data, std::string mail_spool_directory) {
+    std::string delimiter = "\n";    
     std::string sender = data.substr(0, data.find(delimiter));
     data.erase(0, data.find(delimiter) + delimiter.length());
 
@@ -50,11 +55,21 @@ int send(std::string data, std::string mail_spool_directory) {
     std::string subject = data.substr(0, data.find(delimiter));
     data.erase(0, data.find(delimiter) + delimiter.length());
 
-    std::string message = data.substr(0, data.find(delimiter));
-    data.erase(0, data.find(delimiter) + delimiter.length());
+    std::string message; // Stores the complete message, including multiple lines.
+    std::string command_end = "."; // Stores the end-of-message marker.
 
-    std::string command_end = data.substr(0, data.find(delimiter));
-    data.erase(0, data.find(delimiter) + delimiter.length());
+    // Read message lines until the dot marks the end of the message.
+    while (!data.empty()) {
+        std::string line = data.substr(0, data.find(delimiter)); // Extract the next message line.
+
+        data.erase(0, data.find(delimiter) + delimiter.length()); // Remove the extracted line from the remaining data.
+
+        if (line == ".") { // Check if the end-of-message marker was received.
+            break; // Stop reading the message.
+        }
+
+        message += line + "\n"; // Add the current line to the complete message.
+    }
 
     // At this point we receive a correct command from the user, so create the receiver folder if it not exists.
     namespace fs = std::filesystem;
@@ -74,7 +89,7 @@ int send(std::string data, std::string mail_spool_directory) {
         return -1;
     }
     // Write the data in the file
-    file << sender << std::endl << receiver << std::endl << subject << std::endl << message << std::endl << command_end << std::endl;
+    file << sender << std::endl << receiver << std::endl << subject << std::endl << message << command_end << std::endl;
 
     return EXIT_SUCCESS;
 }
