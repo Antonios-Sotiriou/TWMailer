@@ -150,5 +150,4 @@ static void send(std::string &outgoing) {
             break; // Stop reading when the end marker is entered.
         }
     }
-    printf("Email: %s\n", outgoing.c_str());
 }
