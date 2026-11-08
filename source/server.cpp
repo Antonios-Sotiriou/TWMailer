@@ -173,9 +173,9 @@ void *clientCommunication(void *data, std::string mail_spool_directory) {
         memset(&buffer, '\0', BUF);    // reset received_data for the next command.
         
         if (send(*current_socket, response.c_str(), response.length(), 0) == -1) {
-        fprintf(stderr, "send answer failed\n");
-        return NULL;
-}
+            fprintf(stderr, "send answer failed\n");
+            return NULL;
+        }
     }
 
     // closes/frees the descriptor if not already

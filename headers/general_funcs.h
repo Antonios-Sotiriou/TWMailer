@@ -11,5 +11,6 @@ int list(std::string data, std::string mail_spool_directory, std::string &respon
 // Liest eine bestimmte Nachricht
 int readMessage(std::string data, std::string mail_spool_directory, std::string &response); 
 //Prüft, ob der Benutzername gültig ist.
-bool isValidUsername(const std::string &username); 
+bool isValidUsername(const std::string &username);
+int del(std::string data, std::string mail_spool_directory);
 #endif // !GENERAL_FUNCS_H

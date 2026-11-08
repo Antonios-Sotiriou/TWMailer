@@ -72,7 +72,12 @@ int dispatchUserRequest(std::string data, std::string mail_spool_directory, std:
     else if (method == "DEL")
     {
         fprintf(stdout, "User requested message delete!\n");
-        // Implement here DEL logik
+        int result = del(data, mail_spool_directory);
+        if (result == EXIT_SUCCESS)
+        {
+            response = "OK\n"; // Gibt eine Bestätigung bei erfolgreichem Senden zurück
+        }
+        return result;
     }
     else
     {
@@ -92,10 +97,10 @@ int send(std::string data, std::string mail_spool_directory)
     data.erase(0, data.find(delimiter) + delimiter.length());
 
     // Prüft Sender und Empfänger
-        if (!isValidUsername(sender) || !isValidUsername(receiver))
-        {
-            return -1;
-        }
+    if (!isValidUsername(sender) || !isValidUsername(receiver))
+    {
+        return -1;
+    }
 
     std::string subject = data.substr(0, data.find(delimiter));
     data.erase(0, data.find(delimiter) + delimiter.length());
@@ -346,5 +351,9 @@ int readMessage(std::string data, std::string mail_spool_directory, std::string 
         }
     }
 
+    return -1;
+}
+int del(std::string data, std::string mail_spool_directory) {
+    fprintf(stdout, "%s\n%s", data.c_str(), mail_spool_directory.c_str());
     return -1;
 }

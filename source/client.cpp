@@ -17,6 +17,7 @@
 #define BUF 1024
 
 static void send(std::string &outgoing);
+static void del(std::string &outgoing);
 
 int main(int argc, char **argv)
 {
@@ -126,6 +127,10 @@ int main(int argc, char **argv)
             {
                 send(outgoing);
             }
+            else if (strcmp(buffer, "DEL\n") == 0)
+            {
+                del(outgoing);
+            }
             else
             {
                 outgoing = buffer;
@@ -208,4 +213,20 @@ static void send(std::string &outgoing)
             break; // Stop reading when the end marker is entered.
         }
     }
+}
+static void del(std::string &outgoing) {
+    outgoing = "DEL\n"; // Add the DEL command to the request.
+    printf("User Requested deletion: %s!\n", outgoing.c_str());
+
+    char line[BUF]; // Temporary buffer for reading user input.
+
+    printf("Username: ");
+    if (fgets(line, BUF, stdin) == NULL)
+        return;
+    outgoing += line; // Add the username to the request.
+
+    printf("Message-Number: ");
+    if (fgets(line, BUF, stdin) == NULL)
+        return;
+    outgoing += line; // Add the message number to the request.
 }
