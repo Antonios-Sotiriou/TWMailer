@@ -18,19 +18,22 @@
 
 static void send(std::string &outgoing);
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     char buffer[BUF];
     struct sockaddr_in address;
     int create_socket = 0, size = 0;
 
-    if (argc < 3 || argc > 3) {
+    if (argc < 3 || argc > 3)
+    {
         fprintf(stdout, "Wrong arguments are provided. Please use following syntax: \n");
         fprintf(stderr, "./twmailer-client <ip> <port>\n");
         return EXIT_FAILURE;
     }
 
     // CREATE A SOCKET
-    if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    {
         perror("Socket error");
         return EXIT_FAILURE;
     }
@@ -43,7 +46,8 @@ int main(int argc, char **argv) {
     address.sin_port = htons(atoi(argv[2])); // Assign the port received from user console arguments to the socket.
 
     // CREATE A CONNECTION
-    if (connect(create_socket, (struct sockaddr *)&address, sizeof(address)) == -1) {
+    if (connect(create_socket, (struct sockaddr *)&address, sizeof(address)) == -1)
+    {
         perror("Connect error - no server available");
         return EXIT_FAILURE;
     }
@@ -53,52 +57,101 @@ int main(int argc, char **argv) {
 
     // RECEIVE DATA
     size = recv(create_socket, buffer, BUF - 1, 0);
-    if (size == -1) {
+    if (size == -1)
+    {
         perror("recv error");
-    } else if (size == 0) {
+    }
+    else if (size == 0)
+    {
         printf("Server closed remote socket\n"); // ignore error
-    } else {
+    }
+    else
+    {
         buffer[size] = '\0';
         printf("%s", buffer); // ignore error
     }
 
-    while (1) {
+    while (1)
+    {
         printf(">> ");
-        if (fgets(buffer, BUF - 1, stdin) != NULL) {
+        if (fgets(buffer, BUF - 1, stdin) != NULL)
+        {
 
-            if (strncmp(buffer, "quit", 4) == 0) {
+            if (strncmp(buffer, "quit", 4) == 0)
+            {
                 break;
             }
 
-            if (strncmp(buffer, "clear", 5) == 0) {
-                system("clear");
+            if (strncmp(buffer, "clear", 5) == 0)
+            {
+                int clear_result = system("clear");
+                (void)clear_result;
                 continue;
             }
 
             // SEND DATA
             std::string outgoing; // Stores the complete request before sending it.
 
-            if (strcmp(buffer, "SEND\n") == 0) {
+            if (strcmp(buffer, "LIST\n") == 0)
+            {
+                outgoing = "LIST\n";
+
+                char line[BUF];
+
+                printf("Username: ");
+                if (fgets(line, BUF, stdin) == NULL)
+                    break;
+
+                outgoing += line;
+            }
+            else if (strcmp(buffer, "READ\n") == 0)
+            {
+                outgoing = "READ\n";
+
+                char line[BUF];
+
+                printf("Username: ");
+                if (fgets(line, BUF, stdin) == NULL)
+                    break;
+
+                outgoing += line;
+
+                printf("Message number: ");
+                if (fgets(line, BUF, stdin) == NULL)
+                    break;
+
+                outgoing += line;
+            }
+            else if (strcmp(buffer, "SEND\n") == 0)
+            {
                 send(outgoing);
-            } else {
-                outgoing = buffer; // Use the original input for other commands.
+            }
+            else
+            {
+                outgoing = buffer;
             }
 
             // Send the complete request to the server.
-            if (send(create_socket, outgoing.c_str(), outgoing.length(), 0) == -1) {
+            if (send(create_socket, outgoing.c_str(), outgoing.length(), 0) == -1)
+            {
                 perror("send error");
                 break;
             }
 
             // RECEIVE FEEDBACK. This function blocks until it receives a response from the server.
             size = recv(create_socket, buffer, BUF - 1, 0);
-            if (size == -1) {
+            if (size == -1)
+            {
                 perror("recv error");
                 break;
-            } else if (size == 0) {
+            }
+            else if (size == 0)
+            {
                 printf("Server closed remote socket\n");
                 break;
-            } else {
+            }
+            else
+            {
                 buffer[size] = '\0';
                 printf("<< %s\n", buffer);
             }
@@ -106,12 +159,15 @@ int main(int argc, char **argv) {
     }
 
     // CLOSES THE DESCRIPTOR
-    if (create_socket != -1) {
-        if (shutdown(create_socket, SHUT_RDWR) == -1) {
+    if (create_socket != -1)
+    {
+        if (shutdown(create_socket, SHUT_RDWR) == -1)
+        {
             // invalid in case the server is gone already
             perror("shutdown create_socket");
         }
-        if (close(create_socket) == -1) {
+        if (close(create_socket) == -1)
+        {
             perror("close create_socket");
         }
         create_socket = -1;
@@ -119,7 +175,8 @@ int main(int argc, char **argv) {
 
     return EXIT_SUCCESS;
 }
-static void send(std::string &outgoing) {
+static void send(std::string &outgoing)
+{
     outgoing = "SEND\n"; // Add the SEND command to the request.
 
     char line[BUF]; // Temporary buffer for reading user input.
@@ -142,10 +199,12 @@ static void send(std::string &outgoing) {
     printf("Message (finish with a dot on a separate line):\n");
 
     // Read message lines until the user enters a dot.
-    while (fgets(line, BUF, stdin) != NULL) {
+    while (fgets(line, BUF, stdin) != NULL)
+    {
         outgoing += line; // Add the current message line.
 
-        if (strcmp(line, ".\n") == 0 || strcmp(line, ".") == 0) {
+        if (strcmp(line, ".\n") == 0 || strcmp(line, ".") == 0)
+        {
             break; // Stop reading when the end marker is entered.
         }
     }
