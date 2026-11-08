@@ -71,8 +71,7 @@ int main(int argc, char **argv) {
             }
 
             if (strncmp(buffer, "clear", 5) == 0) {
-                int clear_result = system("clear"); // Execute the clear command and store its return value.
-                (void)clear_result;                 // Explicitly mark the return value as intentionally unused.
+                system("clear");
                 continue;
             }
 
