@@ -159,9 +159,10 @@ void *clientCommunication(void *data, std::string mail_spool_directory) {
 
         std::string received_data(buffer);
 
-        if (dispatchUserRequest(received_data, mail_spool_directory) == -1) {    // We parse the command the user entered and initializing twmail struct.
+        std::string response;
+        if (dispatchUserRequest(received_data, mail_spool_directory, response) == -1) {    // We parse the command the user entered and initializing twmail struct.
 
-            if (send(*current_socket, "ERR", 4, 0) == -1) {
+            if (send(*current_socket, "ERR\n", 4, 0) == -1) {
                 fprintf(stderr, "send answer failed\n");
                 return NULL;
             }
@@ -171,10 +172,10 @@ void *clientCommunication(void *data, std::string mail_spool_directory) {
 
         memset(&buffer, '\0', BUF);    // reset received_data for the next command.
         
-        if (send(*current_socket, "OK", 3, 0) == -1) {
-            fprintf(stderr, "send answer failed\n");
-            return NULL;
-        }
+        if (send(*current_socket, response.c_str(), response.length(), 0) == -1) {
+        fprintf(stderr, "send answer failed\n");
+        return NULL;
+}
     }
 
     // closes/frees the descriptor if not already
@@ -198,20 +199,20 @@ void signalHandler(int sig) {
         // With shutdown() one can initiate normal TCP close sequence ignoring the reference count.
         if (new_socket != -1) {
             if (shutdown(new_socket, SHUT_RDWR) == -1) {
-                perror("shutdown new_socket\n");
+            perror("shutdown new_socket\n");
             }
             if (close(new_socket) == -1) {
-                perror("close new_socket\n");
+            perror("close new_socket\n");
             }
             new_socket = -1;
         }
 
         if (create_socket != -1) {
             if (shutdown(create_socket, SHUT_RDWR) == -1) {
-                perror("shutdown create_socket\n");
+            perror("shutdown create_socket\n");
             }
             if (close(create_socket) == -1) {
-                perror("close create_socket\n");
+            perror("close create_socket\n");
             }
             create_socket = -1;
         }
