@@ -354,6 +354,23 @@ int readMessage(std::string data, std::string mail_spool_directory, std::string 
     return -1;
 }
 int del(std::string data, std::string mail_spool_directory) {
+    std::string delimiter = "\n";
+
+    // Liest den Benutzernamen aus der Anfrage
+    std::string username = data.substr(0, data.find(delimiter));
+    // Prüft den Benutzernamen
+    if (!isValidUsername(username))
+    {
+        return -1;
+    }
+    data.erase(0, data.find(delimiter) + delimiter.length());
+
+    // Liest den Message-Nummer aus der Anfrage
+    int message_nummer = std::stoi(data.substr(0, data.find(delimiter)));
+    data.erase(0, data.find(delimiter) + delimiter.length());
+
     fprintf(stdout, "%s\n%s", data.c_str(), mail_spool_directory.c_str());
+    fprintf(stdout, "Username: %s    Message-Nummer: %d\n", username.c_str(), message_nummer);
+
     return -1;
 }

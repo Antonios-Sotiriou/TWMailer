@@ -78,7 +78,7 @@ int main(int argc, char **argv)
         if (fgets(buffer, BUF - 1, stdin) != NULL)
         {
 
-            if (strncmp(buffer, "quit", 4) == 0)
+            if (strncmp(buffer, "QUIT", 4) == 0)
             {
                 break;
             }
@@ -216,7 +216,6 @@ static void send(std::string &outgoing)
 }
 static void del(std::string &outgoing) {
     outgoing = "DEL\n"; // Add the DEL command to the request.
-    printf("User Requested deletion: %s!\n", outgoing.c_str());
 
     char line[BUF]; // Temporary buffer for reading user input.
 
