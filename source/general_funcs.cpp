@@ -369,8 +369,41 @@ int del(std::string data, std::string mail_spool_directory) {
     int message_nummer = std::stoi(data.substr(0, data.find(delimiter)));
     data.erase(0, data.find(delimiter) + delimiter.length());
 
-    fprintf(stdout, "%s\n%s", data.c_str(), mail_spool_directory.c_str());
-    fprintf(stdout, "Username: %s    Message-Nummer: %d\n", username.c_str(), message_nummer);
+    // Erstellt den Pfad zur Nachrichtendatei.
+    std::string file_name = std::string(CURRENT_DIR) + "/" +
+                            mail_spool_directory + "/" +
+                            username + "/received_messages.txt";
+
+    // Öffnet die Nachrichtendatei
+    std::ifstream file(file_name);
+    if (!file.is_open()) {
+        return -1;
+    }
+
+    // Liest den Nachrichteninhalt bis zum Endzeichen
+    int message_index = 0;
+    std::string line;
+    std::string file_data; // The data to be rewritten to the file, except the message that we want to reset.
+    std::string message; // The messages gotten from the file.
+    while (std::getline(file, line)) {
+        message += "\n" + line;
+
+        if (line == ".") {
+            message_index++;
+            printf("Message_number: %d    Message_index: %d\n", message_nummer, message_index);
+            if (message_nummer != message_index) {
+                file_data += message;
+            }
+            message.clear();
+        }
+    }
+
+    if (message_nummer > message_index) {
+        // Message Nummer out of range.
+        return -1;
+    }
+
+    printf("Data: %s\n", file_data.c_str());
 
     return -1;
 }
