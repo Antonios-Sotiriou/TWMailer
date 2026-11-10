@@ -369,14 +369,14 @@ int del(std::string data, std::string mail_spool_directory) {
     int message_nummer = std::stoi(data.substr(0, data.find(delimiter)));
     data.erase(0, data.find(delimiter) + delimiter.length());
 
-    // Erstellt den Pfad zur Nachrichtendatei.
+    // Erstellt den Pfad zur Nachrichtendatei des Benutzers.
     std::string file_name = std::string(CURRENT_DIR) + "/" +
                             mail_spool_directory + "/" +
                             username + "/received_messages.txt";
 
     // Öffnet die Nachrichtendatei
-    std::ifstream file(file_name);
-    if (!file.is_open()) {
+    std::ifstream file_in(file_name);
+    if (!file_in.is_open()) {
         return -1;
     }
 
@@ -385,25 +385,31 @@ int del(std::string data, std::string mail_spool_directory) {
     std::string line;
     std::string file_data; // The data to be rewritten to the file, except the message that we want to reset.
     std::string message; // The messages gotten from the file.
-    while (std::getline(file, line)) {
-        message += "\n" + line;
+    while (std::getline(file_in, line)) {
+        message += line + "\n";
 
         if (line == ".") {
-            message_index++;
-            printf("Message_number: %d    Message_index: %d\n", message_nummer, message_index);
-            if (message_nummer != message_index) {
+            if (message_nummer != message_index) { 
                 file_data += message;
             }
+            message_index++;
             message.clear();
         }
     }
+    file_in.close();
 
-    if (message_nummer > message_index) {
+    if (message_nummer >= message_index) {
         // Message Nummer out of range.
         return -1;
     }
 
-    printf("Data: %s\n", file_data.c_str());
-
-    return -1;
+    // Open a file to write the new data without the deleted message.
+    std::ofstream file_out(file_name);
+    if (!file_out.is_open()) {
+        return -1;
+    }
+    file_out.write(file_data.c_str(), file_data.length());
+    file_out.close();
+    
+    return EXIT_SUCCESS;
 }
