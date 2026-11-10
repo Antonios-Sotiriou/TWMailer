@@ -17,6 +17,8 @@
 #define BUF 1024
 
 static void send(std::string &outgoing);
+static void listMessages(std::string &outgoing);
+static void readMessageRequest(std::string &outgoing);
 static void del(std::string &outgoing);
 
 int main(int argc, char **argv)
@@ -95,33 +97,11 @@ int main(int argc, char **argv)
 
             if (strcmp(buffer, "LIST\n") == 0)
             {
-                outgoing = "LIST\n";
-
-                char line[BUF];
-
-                printf("Username: ");
-                if (fgets(line, BUF, stdin) == NULL)
-                    break;
-
-                outgoing += line;
+                listMessages(outgoing);
             }
             else if (strcmp(buffer, "READ\n") == 0)
             {
-                outgoing = "READ\n";
-
-                char line[BUF];
-
-                printf("Username: ");
-                if (fgets(line, BUF, stdin) == NULL)
-                    break;
-
-                outgoing += line;
-
-                printf("Message number: ");
-                if (fgets(line, BUF, stdin) == NULL)
-                    break;
-
-                outgoing += line;
+                readMessageRequest(outgoing);
             }
             else if (strcmp(buffer, "SEND\n") == 0)
             {
@@ -214,7 +194,8 @@ static void send(std::string &outgoing)
         }
     }
 }
-static void del(std::string &outgoing) {
+static void del(std::string &outgoing)
+{
     outgoing = "DEL\n"; // Add the DEL command to the request.
 
     char line[BUF]; // Temporary buffer for reading user input.
@@ -228,4 +209,38 @@ static void del(std::string &outgoing) {
     if (fgets(line, BUF, stdin) == NULL)
         return;
     outgoing += line; // Add the message number to the request.
+}
+
+// Erstellt die LIST-Anfrage
+static void listMessages(std::string &outgoing)
+{
+    outgoing = "LIST\n";
+
+    char line[BUF];
+
+    printf("Username: ");
+    if (fgets(line, BUF, stdin) == NULL)
+        return;
+
+    outgoing += line;
+}
+
+// Erstellt die READ-Anfrage
+static void readMessageRequest(std::string &outgoing)
+{
+    outgoing = "READ\n";
+
+    char line[BUF];
+
+    printf("Username: ");
+    if (fgets(line, BUF, stdin) == NULL)
+        return;
+
+    outgoing += line;
+
+    printf("Message number: ");
+    if (fgets(line, BUF, stdin) == NULL)
+        return;
+
+    outgoing += line;
 }
