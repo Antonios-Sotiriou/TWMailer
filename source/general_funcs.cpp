@@ -14,7 +14,6 @@
 // Prüft, ob der Benutzername gültig ist
 bool isValidUsername(const std::string &username)
 {
-
     // Prüft die Länge
     if (username.empty() || username.length() > 8)
     {
@@ -38,7 +37,6 @@ bool isValidUsername(const std::string &username)
 /* Parses the received data seperating the individual components. Initializes a struct to hold those data. */
 int dispatchUserRequest(std::string data, std::string mail_spool_directory, std::string &response)
 {
-
     // The client sends actual newline characters when the user presses Enter.
     // We use "\n" as a delimiter to separate the individual lines of the received data.
     // Using "\\n" would search for the two characters '\' and 'n' instead of an actual newline
@@ -157,7 +155,6 @@ int send(std::string data, std::string mail_spool_directory)
 // Erstellt eine Liste der Nachrichten
 int list(std::string data, std::string mail_spool_directory, std::string &response)
 {
-
     std::string delimiter = "\n";
 
     // Liest den Benutzernamen aus der Anfrage
@@ -234,7 +231,6 @@ int list(std::string data, std::string mail_spool_directory, std::string &respon
 // Liest eine bestimmte Nachricht
 int readMessage(std::string data, std::string mail_spool_directory, std::string &response)
 {
-
     std::string delimiter = "\n";
 
     // Liest den Benutzernamen aus der Anfrage

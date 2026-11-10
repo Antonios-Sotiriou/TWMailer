@@ -150,7 +150,7 @@ void *clientCommunication(void *data, std::string mail_spool_directory)
     int *current_socket = (int *)data;
 
     // SEND welcome message
-    strcpy(buffer, "Welcome to myserver!\r\nPlease enter your commands...\r\n");
+    strcpy(buffer, "Connected to Server!\r\nPlease enter your commands...\r\n");
     if (send(*current_socket, buffer, strlen(buffer), 0) == -1)
     {
         fprintf(stderr, "send failed\n");
