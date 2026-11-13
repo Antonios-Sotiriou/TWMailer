@@ -101,6 +101,10 @@ int send(std::string data, std::string mail_spool_directory)
     }
 
     std::string subject = data.substr(0, data.find(delimiter));
+    if (subject.length() > 80)
+    {
+        return -1;
+    }
     data.erase(0, data.find(delimiter) + delimiter.length());
 
     std::string message;           // Stores the complete message, including multiple lines.
@@ -112,7 +116,6 @@ int send(std::string data, std::string mail_spool_directory)
         std::string line = data.substr(0, data.find(delimiter)); // Extract the next message line.
 
         data.erase(0, data.find(delimiter) + delimiter.length()); // Remove the extracted line from the remaining data.
-        
 
         if (line == ".")
         {          // Check if the end-of-message marker was received.
@@ -146,7 +149,7 @@ int send(std::string data, std::string mail_spool_directory)
     file << sender << std::endl
          << receiver << std::endl
          << subject << std::endl
-         << message << std::endl
+         << message
          << command_end << std::endl;
 
     return EXIT_SUCCESS;
@@ -349,7 +352,8 @@ int readMessage(std::string data, std::string mail_spool_directory, std::string 
 
     return -1;
 }
-int del(std::string data, std::string mail_spool_directory) {
+int del(std::string data, std::string mail_spool_directory)
+{
     std::string delimiter = "\n";
 
     // Liest den Benutzernamen aus der Anfrage
@@ -372,7 +376,8 @@ int del(std::string data, std::string mail_spool_directory) {
 
     // Öffnet die Nachrichtendatei
     std::ifstream file_in(file_name);
-    if (!file_in.is_open()) {
+    if (!file_in.is_open())
+    {
         return -1;
     }
 
@@ -380,12 +385,15 @@ int del(std::string data, std::string mail_spool_directory) {
     int message_index = 0;
     std::string line;
     std::string file_data; // The data to be rewritten to the file, except the message that we want to reset.
-    std::string message; // The messages gotten from the file.
-    while (std::getline(file_in, line)) {
+    std::string message;   // The messages gotten from the file.
+    while (std::getline(file_in, line))
+    {
         message += line + "\n";
 
-        if (line == ".") {
-            if (message_nummer != message_index) { 
+        if (line == ".")
+        {
+            if (message_nummer != message_index)
+            {
                 file_data += message;
             }
             message_index++;
@@ -394,18 +402,20 @@ int del(std::string data, std::string mail_spool_directory) {
     }
     file_in.close();
 
-    if (message_nummer >= message_index) {
+    if (message_nummer >= message_index)
+    {
         // Message Nummer out of range.
         return -1;
     }
 
     // Open a file to write the new data without the deleted message.
     std::ofstream file_out(file_name);
-    if (!file_out.is_open()) {
+    if (!file_out.is_open())
+    {
         return -1;
     }
     file_out.write(file_data.c_str(), file_data.length());
     file_out.close();
-    
+
     return EXIT_SUCCESS;
 }
