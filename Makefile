@@ -18,6 +18,8 @@ CC=g++
 #############################################################################################
 CFLAGS=-g -Wall -Wextra -Werror -O -pthread
 
+LIBS=-lldap -llber
+
 CWD := $(shell pwd)
 CFLAGS += -DCURRENT_DIR=\"$(CWD)\"
 
@@ -37,8 +39,11 @@ clean:
 ./obj/general_funcs.o: source/general_funcs.cpp
 	${CC} ${CFLAGS} -o obj/general_funcs.o source/general_funcs.cpp -c 
 
-./bin/server: ./obj/server.o ./obj/general_funcs.o
-	${CC} ${CFLAGS} -o bin/server obj/server.o ./obj/general_funcs.o
+./obj/ldap_authentication.o: source/ldap_authentication.cpp headers/ldap_authentication.h
+	${CC} ${CFLAGS} -o obj/ldap_authentication.o source/ldap_authentication.cpp -c
+
+./bin/server: ./obj/server.o ./obj/general_funcs.o ./obj/ldap_authentication.o
+	${CC} ${CFLAGS} -o ./bin/server obj/server.o ./obj/general_funcs.o obj/ldap_authentication.o ${LIBS}
 
 ./bin/client: ./obj/client.o
 	${CC} ${CFLAGS} -o bin/client obj/client.o
