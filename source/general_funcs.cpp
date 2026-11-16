@@ -392,17 +392,17 @@ int del(std::string data, std::string mail_spool_directory)
 
         if (line == ".")
         {
+            message_index++;
             if (message_nummer != message_index)
             {
                 file_data += message;
             }
-            message_index++;
             message.clear();
         }
     }
     file_in.close();
 
-    if (message_nummer >= message_index)
+    if ((message_nummer) == 0 || (message_nummer > message_index))
     {
         // Message Nummer out of range.
         return -1;
