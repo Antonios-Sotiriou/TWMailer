@@ -178,7 +178,7 @@ int main(int argc, char **argv)
                     else
                     {
                         buffer[size] = '\0';
-                        printf("<< %s\n", buffer);
+                        printf("%s\n", buffer);
                     }
                 }
             }

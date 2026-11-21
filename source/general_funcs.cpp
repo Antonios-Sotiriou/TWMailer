@@ -222,7 +222,7 @@ static int list(std::string data, std::string mail_spool_directory, std::string 
     }
 
     // Erstellt die Antwort mit Anzahl und Betreffzeilen
-    response = std::to_string(subjects.size()) + "\n";
+    response = "Total messages: " + std::to_string(subjects.size()) + "\n";
 
     for (const std::string &current_subject : subjects)
     {
