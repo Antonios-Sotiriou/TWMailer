@@ -3,9 +3,6 @@
 
 #include <string>
 
-bool authenticateLdap( //prüft die Benutzerdaten über LDAP-Server
-    const std::string& username, 
-    const std::string& password
-);
+bool authenticateLdap(const std::string& username, const std::string& password);
 
 #endif

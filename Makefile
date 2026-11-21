@@ -39,12 +39,15 @@ clean:
 ./obj/general_funcs.o: source/general_funcs.cpp
 	${CC} ${CFLAGS} -o obj/general_funcs.o source/general_funcs.cpp -c 
 
+./obj/get_user_pswd.o: source/get_user_pswd.cpp
+	${CC} ${CFLAGS} -o obj/get_user_pswd.o source/get_user_pswd.cpp -c 
+
 ./obj/ldap_authentication.o: source/ldap_authentication.cpp headers/ldap_authentication.h
 	${CC} ${CFLAGS} -o obj/ldap_authentication.o source/ldap_authentication.cpp -c
 
 ./bin/server: ./obj/server.o ./obj/general_funcs.o ./obj/ldap_authentication.o
 	${CC} ${CFLAGS} -o ./bin/server obj/server.o ./obj/general_funcs.o obj/ldap_authentication.o ${LIBS}
 
-./bin/client: ./obj/client.o
-	${CC} ${CFLAGS} -o bin/client obj/client.o
+./bin/client: ./obj/client.o ./obj/general_funcs.o obj/ldap_authentication.o obj/get_user_pswd.o
+	${CC} ${CFLAGS} -o bin/client obj/client.o ./obj/general_funcs.o obj/ldap_authentication.o obj/get_user_pswd.o ${LIBS}
 
