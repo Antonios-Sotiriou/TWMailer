@@ -11,6 +11,11 @@
 #define CURRENT_DIR ""
 #endif
 
+static int send(std::string data, std::string mail_spool_directory);
+static int list(std::string data, std::string mail_spool_directory, std::string &response);
+static int read(std::string data, std::string mail_spool_directory, std::string &response);
+static int del(std::string data, std::string mail_spool_directory);
+
 // Prüft, ob der Benutzername gültig ist
 bool isValidUsername(const std::string &username)
 {
@@ -65,7 +70,7 @@ int dispatchUserRequest(std::string data, std::string mail_spool_directory, std:
     else if (method == "READ")
     {
         fprintf(stdout, "User requested message read!\n");
-        return readMessage(data, mail_spool_directory, response); // Liest eine bestimmte Nachricht
+        return read(data, mail_spool_directory, response); // Liest eine bestimmte Nachricht
     }
     else if (method == "DEL")
     {
@@ -85,7 +90,7 @@ int dispatchUserRequest(std::string data, std::string mail_spool_directory, std:
 
     return EXIT_SUCCESS;
 }
-int send(std::string data, std::string mail_spool_directory)
+static int send(std::string data, std::string mail_spool_directory)
 {
     std::string delimiter = "\n";
     std::string sender = data.substr(0, data.find(delimiter));
@@ -147,16 +152,14 @@ int send(std::string data, std::string mail_spool_directory)
     }
     // Write the data in the file
     file << sender << std::endl
-         << receiver << std::endl
          << subject << std::endl
          << message
          << command_end << std::endl;
 
     return EXIT_SUCCESS;
 }
-
 // Erstellt eine Liste der Nachrichten
-int list(std::string data, std::string mail_spool_directory, std::string &response)
+static int list(std::string data, std::string mail_spool_directory, std::string &response)
 {
     std::string delimiter = "\n";
 
@@ -185,7 +188,6 @@ int list(std::string data, std::string mail_spool_directory, std::string &respon
     std::vector<std::string> subjects;
 
     std::string sender;
-    std::string receiver;
     std::string subject;
     std::string line;
 
@@ -193,8 +195,7 @@ int list(std::string data, std::string mail_spool_directory, std::string &respon
     while (std::getline(file, sender))
     {
 
-        if (!std::getline(file, receiver) ||
-            !std::getline(file, subject))
+        if (!std::getline(file, subject))
         {
             return -1;
         }
@@ -232,7 +233,7 @@ int list(std::string data, std::string mail_spool_directory, std::string &respon
 }
 
 // Liest eine bestimmte Nachricht
-int readMessage(std::string data, std::string mail_spool_directory, std::string &response)
+static int read(std::string data, std::string mail_spool_directory, std::string &response)
 {
     std::string delimiter = "\n";
 
@@ -298,7 +299,6 @@ int readMessage(std::string data, std::string mail_spool_directory, std::string 
     }
 
     std::string sender;
-    std::string receiver;
     std::string subject;
     std::string line;
     int current_number = 0;
@@ -307,8 +307,7 @@ int readMessage(std::string data, std::string mail_spool_directory, std::string 
     while (std::getline(file, sender))
     {
 
-        if (!std::getline(file, receiver) ||
-            !std::getline(file, subject))
+        if (!std::getline(file, subject))
         {
             return -1;
         }
@@ -342,7 +341,6 @@ int readMessage(std::string data, std::string mail_spool_directory, std::string 
 
             response = "OK\n" +
                        sender + "\n" +
-                       receiver + "\n" +
                        subject + "\n" +
                        message_body + ".\n";
 
@@ -352,7 +350,7 @@ int readMessage(std::string data, std::string mail_spool_directory, std::string 
 
     return -1;
 }
-int del(std::string data, std::string mail_spool_directory)
+static int del(std::string data, std::string mail_spool_directory)
 {
     std::string delimiter = "\n";
 

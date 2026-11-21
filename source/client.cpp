@@ -1,3 +1,4 @@
+#include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -7,6 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include "../headers/get_user_pswd.h"
+#include "../headers/ldap_authentication.h"
+#include "../headers/general_funcs.h"
 
 #ifndef CURRENT_DIR
 #define CURRENT_DIR ""
@@ -16,16 +20,19 @@
 
 #define BUF 1024
 
-static void send(std::string &outgoing);
-static void listMessages(std::string &outgoing);
-static void readMessageRequest(std::string &outgoing);
-static void del(std::string &outgoing);
+static void send(std::string user, std::string &outgoing);
+static void list(std::string user, std::string &outgoing);
+static void read(std::string user, std::string &outgoing);
+static void del(std::string user, std::string &outgoing);
+static bool login(std::string &user);
 
 int main(int argc, char **argv)
 {
     char buffer[BUF];
     struct sockaddr_in address;
     int create_socket = 0, size = 0;
+    std::string user;
+    bool user_logged_in = false;
 
     if (argc < 3 || argc > 3)
     {
@@ -55,9 +62,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    // ignore return value of printf
-    printf("Connection with server (%s) established\n", inet_ntoa(address.sin_addr));
-
+    // Connection with server established
     // RECEIVE DATA
     size = recv(create_socket, buffer, BUF - 1, 0);
     if (size == -1)
@@ -74,71 +79,108 @@ int main(int argc, char **argv)
         printf("%s", buffer); // ignore error
     }
 
-    while (1)
+    int running = 1;
+    while (running)
     {
-        printf(">> ");
+        printf("commands (LOGIN, QUIT, CLEAR) ");
         if (fgets(buffer, BUF - 1, stdin) != NULL)
         {
-
             if (strncmp(buffer, "QUIT", 4) == 0)
             {
                 break;
             }
-
-            if (strncmp(buffer, "clear", 5) == 0)
+            else if (strncmp(buffer, "CLEAR", 5) == 0)
             {
                 int clear_result = system("clear");
                 (void)clear_result;
                 continue;
             }
-
-            // SEND DATA
-            std::string outgoing; // Stores the complete request before sending it.
-
-            if (strcmp(buffer, "LIST\n") == 0)
-            {
-                listMessages(outgoing);
-            }
-            else if (strcmp(buffer, "READ\n") == 0)
-            {
-                readMessageRequest(outgoing);
-            }
-            else if (strcmp(buffer, "SEND\n") == 0)
-            {
-                send(outgoing);
-            }
-            else if (strcmp(buffer, "DEL\n") == 0)
-            {
-                del(outgoing);
-            }
-            else
-            {
-                outgoing = buffer;
+            else if (strncmp(buffer, "LOGIN", 5) == 0) {
+                if (!user_logged_in) {
+                    user_logged_in = login(user);
+                    // user_logged_in = true;
+                    if (!user_logged_in) {
+                        printf("User login failed!\n");
+                        continue;
+                    }
+                }
+            } else {
+                continue;
             }
 
-            // Send the complete request to the server.
-            if (send(create_socket, outgoing.c_str(), outgoing.length(), 0) == -1)
+            if (user_logged_in) 
             {
-                perror("send error");
-                break;
-            }
+                while (1) 
+                {
+                    printf("commands (SEND, LIST, READ, DEL, CLEAR, LOGOUT, QUIT) ");
+                    if (fgets(buffer, BUF - 1, stdin) != NULL)
+                    {
+                        // SEND DATA
+                        std::string outgoing; // Stores the complete request before sending it.
 
-            // RECEIVE FEEDBACK. This function blocks until it receives a response from the server.
-            size = recv(create_socket, buffer, BUF - 1, 0);
-            if (size == -1)
-            {
-                perror("recv error");
-                break;
-            }
-            else if (size == 0)
-            {
-                printf("Server closed remote socket\n");
-                break;
-            }
-            else
-            {
-                buffer[size] = '\0';
-                printf("<< %s\n", buffer);
+                        if (strncmp(buffer, "QUIT", 4) == 0)
+                        {
+                            running = 0;
+                            break;
+                        }
+                        else if (strncmp(buffer, "CLEAR", 5) == 0)
+                        {
+                            int clear_result = system("clear");
+                            (void)clear_result;
+                            continue;
+                        }
+                        else if (strncmp(buffer, "LOGOUT", 6) == 0)
+                        {
+                            user_logged_in = false;
+                            break;
+                        }
+                        else if (strcmp(buffer, "LIST\n") == 0)
+                        {
+                            list(user, outgoing);
+                        }
+                        else if (strcmp(buffer, "READ\n") == 0)
+                        {
+                            read(user, outgoing);
+                        }
+                        else if (strcmp(buffer, "SEND\n") == 0)
+                        {
+                            send(user, outgoing);
+                        }
+                        else if (strcmp(buffer, "DEL\n") == 0)
+                        {
+                            del(user, outgoing);
+                        }
+                        else
+                        {
+                            outgoing = buffer;
+                        }
+
+                        // Send the complete request to the server.
+                        if (send(create_socket, outgoing.c_str(), outgoing.length(), 0) == -1)
+                        {
+                            perror("send error");
+                            break;
+                        }
+                    }
+
+                    // RECEIVE FEEDBACK. This function blocks until it receives a response from the server.
+                    size = recv(create_socket, buffer, BUF - 1, 0);
+                    if (size == -1)
+                    {
+                        perror("recv error");
+                        break;
+                    }
+                    else if (size == 0)
+                    {
+                        printf("Server closed remote socket\n");
+                        break;
+                    }
+                    else
+                    {
+                        buffer[size] = '\0';
+                        printf("<< %s\n", buffer);
+                    }
+                }
             }
         }
     }
@@ -160,16 +202,12 @@ int main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
-static void send(std::string &outgoing)
+static void send(std::string user, std::string &outgoing)
 {
     outgoing = "SEND\n"; // Add the SEND command to the request.
+    outgoing += user + "\n";
 
     char line[BUF]; // Temporary buffer for reading user input.
-
-    printf("Sender: ");
-    if (fgets(line, BUF, stdin) == NULL)
-        return;
-    outgoing += line; // Add the sender to the request.
 
     printf("Receiver: ");
     if (fgets(line, BUF, stdin) == NULL)
@@ -194,53 +232,48 @@ static void send(std::string &outgoing)
         }
     }
 }
-static void del(std::string &outgoing)
+static void del(std::string user, std::string &outgoing)
 {
     outgoing = "DEL\n"; // Add the DEL command to the request.
+    outgoing += user + "\n"; 
 
     char line[BUF]; // Temporary buffer for reading user input.
-
-    printf("Username: ");
-    if (fgets(line, BUF, stdin) == NULL)
-        return;
-    outgoing += line; // Add the username to the request.
 
     printf("Message-Number: ");
     if (fgets(line, BUF, stdin) == NULL)
         return;
     outgoing += line; // Add the message number to the request.
 }
-
-// Erstellt die LIST-Anfrage
-static void listMessages(std::string &outgoing)
+static void list(std::string user, std::string &outgoing)
 {
     outgoing = "LIST\n";
-
-    char line[BUF];
-
-    printf("Username: ");
-    if (fgets(line, BUF, stdin) == NULL)
-        return;
-
-    outgoing += line;
+    outgoing += user + "\n"; 
 }
-
-// Erstellt die READ-Anfrage
-static void readMessageRequest(std::string &outgoing)
+static void read(std::string user, std::string &outgoing)
 {
     outgoing = "READ\n";
+    outgoing += user + "\n"; 
 
     char line[BUF];
-
-    printf("Username: ");
-    if (fgets(line, BUF, stdin) == NULL)
-        return;
-
-    outgoing += line;
 
     printf("Message number: ");
     if (fgets(line, BUF, stdin) == NULL)
         return;
 
     outgoing += line;
+}
+static bool login(std::string &user) {
+
+    printf("User (max 8 chars): ");
+    std::cin >> user;
+    std::cin.get(); // Clears the new line char left in stdin
+
+    if (isValidUsername(user)) {
+        std::string password = getpass();
+
+        return authenticateLdap(user, password) == 0;
+    }
+
+    printf("Invalid Username!\n");
+    return false;
 }
